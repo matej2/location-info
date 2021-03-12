@@ -15,32 +15,53 @@ reddit = praw.Reddit(client_id=client_id,
                      user_agent='Location info bot by /mtj510',
                      username=username,
                      password=password)
+# Cities
+CITY_REGEX = '.+$'
 
-CITY_URL = 'https://en.wikipedia.org/wiki/{}'
-CITY_REGEX = '.+$';
+WIKI_URL = 'https://en.wikipedia.org/wiki/{}'
+VISIT_URL = 'https://www.visitacity.com/en/{}'
+MAPS_URL = 'https://www.google.com/maps/search/{}'
+
 SPACE_REGEX = '\s+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 
-FOOTER = 'I am a bot and this was an automated message. I am not responsible for the content neither am I an author. If you think this message is problematic, please contact developers mentioned below.\n\n^(Author: u/mtj510, [source](https://github.com/matej2/location-info) )'
+FOOTER = 'I am a bot and this was an automated message. I am not responsible for the content neither am I an author. If you think this message is problematic, please contact developers mentioned below.\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](https://github.com/matej2/location-info/blob/master/README.md#example) | [github](https://github.com/matej2/location-info) )'
 
 if reddit.read_only == False:
     print("Connected and running.")
 
-def send_link(city, txt, where):
-    message = f'Found match for {city}. \n\n' + f'Wiki: {CITY_URL.format(txt)}\n\n---\n\n{FOOTER}'
 
-    if txt is None:
-        where.reply('No city found, please check again.')
+def get_wiki_link(txt):
+    str = re.sub(SPACE_REGEX, '_', txt)
+    return WIKI_URL.format(str)
+
+def get_visit_link(txt):
+    str = re.sub(SPACE_REGEX, '-', txt)
+    return VISIT_URL.format(str)
+
+def get_map_link(txt):
+    str = re.sub(SPACE_REGEX, '+', txt)
+    return MAPS_URL.format(str)
+
+def send_link(city, where):
+    message = ''
+    isSuccessful = False
+
+    if city is None:
+        message += 'No city found. Please try again.'
     else:
         # TODO: Remove once the bot gets higher rate limits
         print(message)
         try:
-            where.reply(message)
-            print('ok')
-            return True
+            message = f'Information for city: {city}. \n\n' + f'- wiki: {get_wiki_link(city)}\n\n- visit: {get_visit_link(city)}\n\n- map: {get_map_link(city)}\n\n'
+            isSuccessful = True
         except:
             print('Rate limited')
-            return False
+
+    message += f'---\n\n{FOOTER}'
+
+    where.reply(message)
+    return isSuccessful
 
 def main():
     inbox = list(reddit.inbox.unread())
@@ -50,12 +71,10 @@ def main():
         if mention in item.body:
             text = item.body
             msg = re.search(BODY_REGEX, text).group(1)
-            result = re.sub(SPACE_REGEX, '_', msg);
 
-            if send_link(msg, result, item):
+            if send_link(msg, item):
                 item.mark_read()
             time.sleep(10)
-
 
 while True:
     main()
