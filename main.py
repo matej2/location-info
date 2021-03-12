@@ -19,8 +19,9 @@ reddit = praw.Reddit(client_id=client_id,
 CITY_REGEX = '.+$'
 
 WIKI_URL = 'https://en.wikipedia.org/wiki/{}'
-VISIT_URL = 'https://www.visitacity.com/en/{}'
+VISIT_URL = 'https://www.visitacity.com/en/{}/activities/all-activities'
 MAPS_URL = 'https://www.google.com/maps/search/{}'
+#TELEPORT_URL = 'https://teleport.org/cities/madrid'
 
 SPACE_REGEX = '\s+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
