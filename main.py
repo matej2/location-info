@@ -21,17 +21,21 @@ CITY_REGEX = '.+$';
 SPACE_REGEX = '\s+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 
+FOOTER = 'I am a bot and this was an automated message. I am not responsible for the content neither am I an author. If you think this message is problematic, please contact developers mentioned below.\n\n^(Author: u/mtj510, [source](https://github.com/matej2/location-info) )'
 
 if reddit.read_only == False:
     print("Connected and running.")
 
 def send_link(city, txt, where):
+    message = f'Found match for {city}. \n\n' + f'Wiki: {CITY_URL.format(txt)}\n\n---\n\n{FOOTER}'
+
     if txt is None:
         where.reply('No city found, please check again.')
     else:
-        print(f'Found match for {city}. \n\n' + f'Wiki: {CITY_URL.format(txt)}')
+        # TODO: Remove once the bot gets higher rate limits
+        print(message)
         try:
-            where.reply(f'Found match for {city}. \n\n' + CITY_URL.format(txt))
+            where.reply(message)
             print('ok')
             return True
         except:
@@ -50,8 +54,9 @@ def main():
 
             if send_link(msg, result, item):
                 item.mark_read()
+            time.sleep(10)
 
-main()
-#while True:
- #   main()
-  #  time.sleep(30)
+
+while True:
+    main()
+    time.sleep(5)
