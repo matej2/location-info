@@ -23,10 +23,11 @@ Bot would reply:
 ## Installation
 
 1. Clone repo
-2. Create a Reddit app
-3. Fill out environment variables:
+2. Install pipenv
+3. Create a Reddit app
+4. Fill out environment variables:
     - CLIENT_ID
     - CLIENT_SECRET
     - USERNAME
     - PASS
-4. Run `main.py`
+5. Run `pipenv shell` and `python main.py`
