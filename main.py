@@ -39,8 +39,10 @@ def send_link(city, txt, where):
             return False
 
 def main():
+    inbox = list(reddit.inbox.unread())
+    inbox.reverse()
 
-    for item in reddit.inbox.unread():
+    for item in inbox:
         if mention in item.body:
             text = item.body
             msg = re.search(BODY_REGEX, text).group(1)
