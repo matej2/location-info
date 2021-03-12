@@ -3,16 +3,19 @@ Reddit bot which gets info about certain city, location or state.
 
 > Ever wanted to know more about location where the picture was taken? Maybe open up a map or discover interesting things nearby? This bot will provide you with the info
 
-## Example
+## Use
+
+`u/LocationInfoBot <city_name>`
+
+### Example
 
 User would tag bot below post:
 
-> User: u/LocationInfoBot Saarland
-
+> u/LocationInfoBot Saarland
 
 Bot would reply:
 
-> LocationInfoBot: Found match for Saarland.
+> Found match for Saarland.
 > 
 > - Wiki: https://en.wikipedia.org/wiki/Saarland
 > - Instagram: ...
