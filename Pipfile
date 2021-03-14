@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 praw = "*"
+apscheduler = "*"
+wikipedia = "*"
 
 [dev-packages]
 
