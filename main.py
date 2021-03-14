@@ -13,7 +13,7 @@ password = os.environ.get('PASS')
 
 reddit = praw.Reddit(client_id=client_id,
                      client_secret=client_secret,
-                     user_agent='Location info bot by /mtj510',
+                     user_agent='windows:github.com/matej2/location-info:v0.5 (by /u/mtj510)',
                      username=username,
                      password=password)
 # Cities
@@ -60,6 +60,7 @@ def get_wander_url(txt):
 def send_link(city, where):
     message = ''
     isSuccessful = False
+    summary = ''
 
     if city is None:
         message += 'No city found. Please try again.'
@@ -68,18 +69,19 @@ def send_link(city, where):
         print(message)
 
         try:
-            message += wikipedia.summary(city, sentences=3) + '\n\n'
-        except wikipedia.DisambiguationError:
-            message += 'No summary found.'
+            summary += wikipedia.summary(city, sentences=3) + '\n\n'
+        except:
+            summary += 'No summary found.'
 
         visit_link = get_visit_link(city)
 
         try:
-            message = f'Information for city: {city}. \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}'
+            message = f'Information for city: {city}:\n\n {summary} \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}'
 
             if requests.get(visit_link).status_code == 200:
-                message += f'- visit: {visit_link}\n\n'
+                message += f'\n\n- visit: {visit_link}\n\n'
 
+            print(f'{city} succsessfully processed')
             isSuccessful = True
         except:
             print('Rate limited')
