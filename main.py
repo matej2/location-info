@@ -31,7 +31,7 @@ WANDER_URL = 'http://www.wandermap.net/sl/search/?q={}'
 SPACE_REGEX = '\s+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 
-FOOTER = '\n\n---\n\nI am a bot and this was an automated message. I am not responsible for the content neither am I an author of this content. If you think this message is problematic, please contact developers mentioned below.\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](https://github.com/matej2/location-info/blob/master/README.md#example) | [github](https://github.com/matej2/location-info) )'
+FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am I an author of this content. If you think this message is problematic, please contact developers mentioned below.)\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](https://github.com/matej2/location-info/blob/master/README.md#example) | [github](https://github.com/matej2/location-info) )'
 
 if reddit.read_only == False:
     print("Connected and running.")
