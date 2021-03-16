@@ -65,7 +65,7 @@ def get_wander_url(txt):
     return WANDER_URL.format(str)
 
 def get_fb_url(txt):
-    str = urllib.urlencode(txt)
+    str = urllib.parse.quote_plus(txt)
     return FB_URL.format(str)
 
 def get_ig_url(txt):
@@ -73,15 +73,15 @@ def get_ig_url(txt):
     return IG_URL.format(str)
 
 def get_tw_url(txt):
-    str = urllib.urlencode(txt)
-    return FB_URL.format(str)
+    str = urllib.parse.quote_plus(txt)
+    return TW_URL.format(str)
 
 def get_th_url(txt):
     str = re.sub(SPACE_REGEX, '+', txt)
     return TB_URL.format(str)
 
 def get_pt_url(txt):
-    str = urllib.urlencode(txt)
+    str = urllib.parse.quote_plus(txt)
     return PT_URL.format(str)
 
 def send_link(city, where):
@@ -102,16 +102,14 @@ def send_link(city, where):
 
         visit_link = get_visit_link(city)
 
-        try:
-            message = f'Information for location: {city}:\n\n {summary} \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}\n\n- social: [ig]({get_ig_url(city)}), [fb]({get_fb_url(city)}), [tw]({get_tw_url(city)}), [thumblr]({get_th_url(city)}), [pinterest]({get_pt_url(city)})'
+        message = f'Information for location: {city}:\n\n {summary} \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}\n\n- social: [ig]({get_ig_url(city)}), [fb]({get_fb_url(city)}), [tw]({get_tw_url(city)}), [thumblr]({get_th_url(city)}), [pinterest]({get_pt_url(city)})'
 
-            if requests.get(visit_link).status_code == 200:
-                message += f'\n\n- visit: {visit_link}\n\n'
+        if requests.get(visit_link).status_code == 200:
+            message += f'\n\n- visit: {visit_link}\n\n'
 
-            print(f'{city} succsessfully processed')
-            isSuccessful = True
-        except:
-            print('Rate limited')
+
+        print(f'{city} succsessfully processed')
+        isSuccessful = True
 
     message += f'{FOOTER}'
 
@@ -119,7 +117,11 @@ def send_link(city, where):
     return isSuccessful
 
 def main():
-    inbox = list(reddit.inbox.unread())
+    try:
+        inbox = list(reddit.inbox.unread())
+    except praw.exceptions.APIException:
+        print('Rate limited.')
+        return False
     inbox.reverse()
 
     for item in inbox:
