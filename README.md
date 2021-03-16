@@ -22,6 +22,8 @@ Bot would reply:
 > - Map: ...
 > - Turist information: ...
 
+![example](https://user-images.githubusercontent.com/11059438/111335197-79a33700-8674-11eb-8ee7-f259ad3946a1.png)
+
 
 ## Installation
 
