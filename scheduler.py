@@ -8,7 +8,7 @@ from main import main
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(main, trigger=IntervalTrigger(minutes=5))
+    scheduler.add_job(main, trigger=IntervalTrigger(minutes=15))
 
     scheduler.start()
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
