@@ -1,5 +1,6 @@
 import os
 import re
+import urllib
 
 import praw
 import requests
@@ -25,10 +26,16 @@ MAPS_URL = 'https://www.google.com/maps/search/{}'
 #TELEPORT_URL = 'https://teleport.org/cities/madrid'
 BOOKING_URL = 'https://www.booking.com/searchresults.sl.html?ss={}'
 WANDER_URL = 'http://www.wandermap.net/sl/search/?q={}'
+FB_URL = 'https://www.facebook.com/search/places/?q={}'
+IG_URL = 'https://www.instagram.com/explore/tags/{}/'
+TW_URL = 'https://twitter.com/search?q={}&src=typeahead_click&f=image'
+TB_URL = 'https://www.tumblr.com/search/{}'
+PT_URL = 'https://www.pinterest.com/search/pins/?q={}'
 
 # TODO Add links - info about country
 
 SPACE_REGEX = '\s+'
+NOT_CHAR = '\W+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 
 FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am I an author of this content. If you think this message is problematic, please contact developers mentioned below.)\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](https://github.com/matej2/location-info/blob/master/README.md#example) | [github](https://github.com/matej2/location-info) )'
@@ -57,6 +64,26 @@ def get_wander_url(txt):
     str = re.sub(SPACE_REGEX, '+', txt)
     return WANDER_URL.format(str)
 
+def get_fb_url(txt):
+    str = urllib.urlencode(txt)
+    return FB_URL.format(str)
+
+def get_ig_url(txt):
+    str = re.sub(NOT_CHAR, '', txt)
+    return IG_URL.format(str)
+
+def get_tw_url(txt):
+    str = urllib.urlencode(txt)
+    return FB_URL.format(str)
+
+def get_th_url(txt):
+    str = re.sub(SPACE_REGEX, '+', txt)
+    return TB_URL.format(str)
+
+def get_pt_url(txt):
+    str = urllib.urlencode(txt)
+    return PT_URL.format(str)
+
 def send_link(city, where):
     message = ''
     isSuccessful = False
@@ -76,7 +103,7 @@ def send_link(city, where):
         visit_link = get_visit_link(city)
 
         try:
-            message = f'Information for city: {city}:\n\n {summary} \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}'
+            message = f'Information for location: {city}:\n\n {summary} \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}\n\n- social: [ig]({get_ig_url(city)}), [fb]({get_fb_url(city)}), [tw]({get_tw_url(city)}), [thumblr]({get_th_url(city)}), [pinterest]({get_pt_url(city)})'
 
             if requests.get(visit_link).status_code == 200:
                 message += f'\n\n- visit: {visit_link}\n\n'
