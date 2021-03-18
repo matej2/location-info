@@ -126,13 +126,14 @@ def main():
     inbox.reverse()
 
     for item in inbox:
-        if mention in item.body:
+        if mention.lower() in item.body.lower():
             text = item.body
-            body = re.search(BODY_REGEX, text).group(1)
+            result = re.search(BODY_REGEX, text, flags=re.IGNORECASE)
+            if result is not None:
+                body = result.group(1)
 
-            if not body:
-                item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
-            else:
                 if send_link(body, item):
                     item.mark_read()
+            else:
+                item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
             sleep(10)
