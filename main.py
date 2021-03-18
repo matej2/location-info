@@ -1,6 +1,7 @@
 import os
 import re
 import urllib
+from time import sleep
 
 import praw
 import requests
@@ -134,4 +135,4 @@ def main():
             else:
                 if send_link(body, item):
                     item.mark_read()
-            break
+            sleep(10)
