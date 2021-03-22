@@ -1,28 +1,20 @@
 # location-info
-Reddit bot which gets info about certain city, location or state.
+This is a bot that will provide you more information about a certain city, landmark or region. It returns place's description and several useful links.
 
-> Ever wanted to know more about location where the picture was taken? Maybe open up a map or discover interesting things nearby? This bot will provide you with the info
+> Ever wanted to know more about location where the picture was taken? Maybe open up a map or discover interesting things nearby? Or find hike ideas on this location?
 
 ## Use
 
-`u/LocationInfoBot <city_name>`
+Tag user with the name of the location. This will also work for hills, landmarks and regions.
+
+>u/LocationInfoBot <city_name>
 
 ### Example
 
-User would tag bot below post:
 
-> u/LocationInfoBot Saarland
-
-Bot would reply:
-
-> Found match for Saarland.
-> 
-> - Wiki: https://en.wikipedia.org/wiki/Saarland
-> - Instagram: ...
-> - Map: ...
-> - Turist information: ...
 
 ![example](https://user-images.githubusercontent.com/11059438/111335197-79a33700-8674-11eb-8ee7-f259ad3946a1.png)
+
 
 
 ## Installation
@@ -36,3 +28,10 @@ Bot would reply:
     - USERNAME
     - PASS
 5. Run `pipenv shell` and `python main.py`
+
+
+## Content and links
+
+Bot provides location description, taken from wikipedia link. 
+Besides that, bot also provides multiple relevant links: map, hotels, hiking trails, activities and links to social medias.
+All links are built using url and search string (location name).
