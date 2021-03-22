@@ -5,7 +5,7 @@ This is a bot that will provide you more information about a certain city, landm
 
 ## Use
 
-Tag user with the name of the location. This will also work for hills, landmarks and regions.
+Tag user [u/LocationInfoBot](https://www.reddit.com/u/LocationInfoBot/) with the name of the location. This will also work for hills, landmarks and regions.
 
 >u/LocationInfoBot <city_name>
 
