@@ -7,7 +7,8 @@ import praw
 import requests
 import wikipedia
 
-mention = "u/LocationInfoBot"
+user =  'LocationInfoBot'
+mention = f'u/{user}'
 client_id = os.environ.get('CLIENT_ID')
 client_secret = os.environ.get('CLIENT_SECRET')
 username = os.environ.get('USERNAME')
@@ -137,3 +138,9 @@ def main():
             else:
                 item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
             sleep(10)
+
+def purge():
+    for comment in reddit.redditor(user).comments.new(limit=20):
+        if comment.score < 0:
+            print(f'Removing comment {comment.body}')
+            comment.delete()

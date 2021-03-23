@@ -1,3 +1,3 @@
-from main import main
+from main import main, purge
 
-main()
+purge()
