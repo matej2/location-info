@@ -4,7 +4,6 @@ import urllib
 from time import sleep
 
 import praw
-import requests
 import wikipedia
 
 user =  'LocationInfoBot'
@@ -45,10 +44,17 @@ FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not re
 if reddit.read_only == False:
     print("Connected and running.")
 
+class LocationMeta(object):
+    def __init__(self, title, desc, lon, lat, link):
+        self.title = title
+        self.desc = desc
+        self.lon = lon
+        self.lat = lat
+        self.link = link
 
-def get_wiki_link(txt):
-    str = re.sub(SPACE_REGEX, '_', txt)
-    return WIKI_URL.format(str)
+    def __str__(self):
+        return f'Location name: {self.name}'
+
 
 def get_visit_link(txt):
     str = re.sub(SPACE_REGEX, '-', txt)
@@ -89,34 +95,74 @@ def get_pt_url(txt):
 def send_link(city, where):
     message = ''
     isSuccessful = False
-    summary = ''
+    wikiObj = None
+    msg = ''
+    comment = ''
 
     if city is None:
-        message += 'No city found. Please try again.'
+        message += 'No city found in comment. Please try again.'
     else:
         # TODO: Remove once the bot gets higher rate limits
         print(message)
 
-        try:
-            summary += wikipedia.summary(city, sentences=3) + '\n\n'
-        except:
-            summary += 'No summary found.'
+        wikiObj = get_location_meta(city)
 
-        visit_link = get_visit_link(city)
-
-        message = f'Information for location: {city}:\n\n {summary} \n\n- wiki: {get_wiki_link(city)}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}\n\n- social: [ig]({get_ig_url(city)}), [fb]({get_fb_url(city)}), [tw]({get_tw_url(city)}), [thumblr]({get_th_url(city)}), [pinterest]({get_pt_url(city)})'
-
-        if requests.get(visit_link).status_code == 200:
-            message += f'\n\n- visit: {visit_link}\n\n'
-
+        if wikiObj is None:
+            msg = 'No summary found.'
+            comment = get_response_message(None, msg, None)
+        else:
+            comment = get_response_message(wikiObj.title, wikiObj.desc, wikiObj.link)
 
         print(f'{city} succsessfully processed')
         isSuccessful = True
 
-    message += f'{FOOTER}'
 
-    where.reply(message)
+    where.reply(comment)
     return isSuccessful
+
+
+def get_location_meta(city):
+    search = wikipedia.search(city)
+    st = 0
+
+    if search is None:
+        return False
+
+    # Get first location
+    for result in search:
+        try:
+            page = wikipedia.page(title=result)
+        except wikipedia.DisambiguationError as e:
+            return None
+        except wikipedia.PageError:
+            return None
+
+        for attr in page.categories:
+            if attr == 'Coordinates on Wikidata':
+                summary = wikipedia.summary(page.title, sentences=3)
+                return LocationMeta(page.title, summary, page.coordinates[0], page.coordinates[1], page.url)
+
+        if st > 3:
+            return None
+        st = st + 1
+
+    return None
+
+
+def get_response_message(city, summary, link):
+    body = ''
+    if city is None:
+        message = f'''
+No summary found
+{FOOTER}
+'''
+    else:
+        message = f'''
+Information for location: {city}:\n\n {summary} \n\n- wiki: {link}\n\n- map: {get_map_link(city)}\n\n- hotels: {get_booking_url(city)}\n\n- hiking: {get_wander_url(city)}\n\n- social: [instagram]({get_ig_url(city)}) ~ [facebook]({get_fb_url(city)}) ~ [twitter]({get_tw_url(city)}) ~ [thumblr]({get_th_url(city)}) ~ [pinterest]({get_pt_url(city)})
+{FOOTER}'''
+
+    return message
+
 
 def main():
     try:
