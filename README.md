@@ -3,6 +3,12 @@ This is a bot that will provide you more information about a certain city, landm
 
 > Ever wanted to know more about location where the picture was taken? Maybe open up a map or discover interesting things nearby? Or find hike ideas on this location?
 
+How is this bot better than Googling things:
+
+1. On mobile: You dont have to switch between apps
+2. Google is not indexing content from Instagram and Facebook, meaning you wont find such content by googling it
+3. We will eventually be able to search all reddit posts by their location.
+
 ## Use
 
 Tag user [u/LocationInfoBot](https://www.reddit.com/u/LocationInfoBot/) with the name of the location. This will also work for hills, landmarks and regions.
