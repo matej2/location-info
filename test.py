@@ -1,3 +1,5 @@
-from main import main, purge
+from wikipedia import wikipedia
 
-purge()
+from main import main, purge, get_location_meta
+
+main()
