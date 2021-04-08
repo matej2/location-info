@@ -131,23 +131,28 @@ def get_location_meta(city):
     # Get first location
     for result in search:
         try:
-            title = re.sub(COMMA_REGEX, ' ', result)
-            page = wikipedia.page(title=title)
+            page = wikipedia.page(title=result, auto_suggest=False)
         except wikipedia.DisambiguationError as e:
             return None
         except wikipedia.PageError as e:
             return None
 
-        for attr in page.categories:
-            if attr == 'Coordinates on Wikidata':
-                summary = wikipedia.summary(title, sentences=3)
-                return LocationMeta(page.title, summary, page.coordinates[0], page.coordinates[1], page.url)
+        if is_location(page):
+            summary = wikipedia.summary(page.title, sentences=3, auto_suggest=False)
+            return LocationMeta(page.title, summary, page.coordinates[0], page.coordinates[1], page.url)
 
         if st > 3:
             return None
         st = st + 1
 
     return None
+
+
+def is_location(page):
+    for attr in page.categories:
+        if attr == 'Coordinates on Wikidata':
+            return True
+    return False
 
 
 def get_response_message(city, msg, link, nearby):
@@ -158,13 +163,14 @@ def get_response_message(city, msg, link, nearby):
 '''
     else:
         message = f'''
-Information for location: {city}:\n\n {msg} \n\n- locations nearby: {nearby}\n\n- links: [wiki]({link}) ~ [map]({get_map_link(city)}) ~ [hotels]({get_booking_url(city)}) ~ [hiking]({get_wander_url(city)}) ~ [instagram]({get_ig_url(city)}) ~ [facebook]({get_fb_url(city)}) ~ [twitter]({get_tw_url(city)}) ~ [thumblr]({get_th_url(city)}) ~ [pinterest]({get_pt_url(city)})
+Information for location: {city}:\n\n {msg} \n\n- locations/events nearby: {nearby}\n\n- links: [wiki]({link}) ~ [map]({get_map_link(city)}) ~ [hotels]({get_booking_url(city)}) ~ [hiking]({get_wander_url(city)}) ~ [thumblr]({get_th_url(city)}) ~ [pinterest]({get_pt_url(city)})
 {FOOTER}'''
 
     return message
 
 def get_nearby_locations(lon, lat):
-    return ', '.join(wikipedia.geosearch(lon, lat, results=5))
+    list = wikipedia.geosearch(lon, lat, results=10)
+    return ', '.join(list)
 
 
 def main():
