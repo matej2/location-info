@@ -1,5 +1,6 @@
 from wikipedia import wikipedia
 
-from main import main, purge, get_location_meta
+from main import get_metadata, get_taxonomy
+from wikidata.client import Client
 
-main()
+get_taxonomy('Maribor')

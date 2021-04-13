@@ -1,10 +1,14 @@
+import json
 import os
 import re
 import urllib
 from time import sleep
+from requests import get
 
 import praw
+import requests
 import wikipedia
+from wikidata.client import Client
 
 user = 'LocationInfoBot'
 mention = f'u/{user}'
@@ -41,6 +45,8 @@ BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 COMMA_REGEX = ',+'
 
 FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am I an author of this content. If you think this message is problematic, please contact developers mentioned below.)\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](https://github.com/matej2/location-info/blob/master/README.md#example) | [github](https://github.com/matej2/location-info) )'
+NO_BODY = 'Location name not found in comment body.'
+LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
 if reddit.read_only == False:
     print("Connected and running.")
@@ -100,7 +106,7 @@ def send_link(city, where):
     comment = ''
 
     if city is None:
-        comment = get_response_message(None, 'Location name not found in comment body.', None)
+        comment = get_response_message(None, NO_BODY , None)
     else:
         # TODO: Remove once the bot gets higher rate limits
         print(message)
@@ -108,7 +114,7 @@ def send_link(city, where):
         wikiObj = get_location_meta(city)
 
         if wikiObj is None:
-            comment = get_response_message(None, f'No summary found for {city}. Either unknown location or mistype.', None, 'None')
+            comment = get_response_message(None, LOC_NOT_FOUND.format(city) , None, 'None')
         else:
             nearby = get_nearby_locations(wikiObj.lon, wikiObj.lat)
             comment = get_response_message(wikiObj.title, wikiObj.desc, wikiObj.link, nearby)
@@ -172,6 +178,58 @@ def get_nearby_locations(lon, lat):
     list = wikipedia.geosearch(lon, lat, results=10)
     return ', '.join(list)
 
+# See https://stackoverflow.com/a/33336820/10538678
+def get_taxonomy(title):
+    r = requests.get('https://en.wikipedia.org/w/api.php?action=query&titles=' + title  + '&prop=revisions&rvprop=content&rvsection=0&format=json')
+
+    #https://en.wikipedia.org/wiki/Special:ApiSandbox#action=query&prop=revisions&format=json&rvprop=content&rvsection=0&rvcontentformat=text%2Fx-wiki&titles=Foraminifera
+
+    a = ''
+    t = json.loads(r.text)
+    for i in t['query']['pages']:
+        a = t['query']['pages'][ i ]['revisions'][0]['*']
+
+    taxobox = a
+    taxobox = taxobox[taxobox.index("\n[["):]
+    taxobox = taxobox[:taxobox.index("}}")]
+
+    taxobox = taxobox.replace('[[', '')
+    taxobox = taxobox.replace(']]', '')
+    taxobox = taxobox.replace('<br>', '')
+    taxobox = taxobox.replace("''", '')
+    taxobox = taxobox.replace("&nbsp;", ' ')
+
+    t = []
+    for i in taxobox.split("\n"):
+        if len(i) > 0:
+            if '|' in i:                    # for href titles
+                t.append( i.split('|')[1] ) # for href titles
+            else:
+                t.append( i )
+
+    return "\n".join(t)
+
+
+def get_metadata(loc):
+    # Using request as a temp solution because wptools cannot be installed
+    res = get('https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&titles={}&format=json'.format(loc))
+    wikidata_id = None
+
+    if res.status_code == 200:
+        try:
+            wiki_res = json.loads(res.content)
+            wiki_pages = wiki_res['query']['pages']
+            page_id = list(wiki_pages.keys())[0]
+            wikidata_id = wiki_pages[page_id]['pageprops']['wikibase_item']
+        except:
+            print('Wiki API response is not found.')
+
+        print(wikidata_id)
+
+        if wikidata_id is not None:
+            client = Client()
+            entity = client.get(wikidata_id, load=True)
+        print ('ok')
 
 def main():
     try:
