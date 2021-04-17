@@ -10,6 +10,8 @@ import requests
 import wikipedia
 from wikidata.client import Client
 
+from models import LocationMeta
+
 user = 'LocationInfoBot'
 mention = f'u/{user}'
 client_id = os.environ.get('CLIENT_ID')
@@ -48,19 +50,10 @@ FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not re
 NO_BODY = 'Location name not found in comment body.'
 LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
+KEYWORD = 'Location:\s*\w+(\.|\n)'
+
 if reddit.read_only == False:
     print("Connected and running.")
-
-class LocationMeta(object):
-    def __init__(self, title, desc, lon, lat, link):
-        self.title = title
-        self.desc = desc
-        self.lon = lon
-        self.lat = lat
-        self.link = link
-
-    def __str__(self):
-        return f'Location name: {self.name}'
 
 
 def get_visit_link(txt):
@@ -230,6 +223,22 @@ def get_metadata(loc):
             client = Client()
             entity = client.get(wikidata_id, load=True)
         print ('ok')
+
+def read_keywords():
+    from psaw import PushshiftAPI
+    api = PushshiftAPI(reddit)
+    results = list(api.search_comments(
+            q='Location\:',
+            filter=['url', 'author', 'title', 'subreddit'],
+            limit=10,
+            subreddit='test'
+        )
+    )
+    for sub in results:
+        if sub.body and sub.author is not user:
+            print(sub.body)
+            print(re.search(KEYWORD, sub.body))
+
 
 def main():
     try:
