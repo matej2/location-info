@@ -10,7 +10,7 @@ wikipedia = "*"
 wikidata = "*"
 psaw = "*"
 setuptools = "*"
-wikitextparser = "*"
+mwparserfromhell = "*"
 
 [dev-packages]
 
