@@ -8,6 +8,9 @@ praw = "*"
 apscheduler = "*"
 wikipedia = "*"
 wikidata = "*"
+psaw = "*"
+setuptools = "*"
+wikitextparser = "*"
 
 [dev-packages]
 
