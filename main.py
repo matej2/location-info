@@ -9,6 +9,7 @@ import praw
 import requests
 import wikipedia
 from wikidata.client import Client
+import wikitextparser as wtp
 
 from models import LocationMeta
 
@@ -19,11 +20,6 @@ client_secret = os.environ.get('CLIENT_SECRET')
 username = os.environ.get('USERNAME')
 password = os.environ.get('PASS')
 
-reddit = praw.Reddit(client_id=client_id,
-                     client_secret=client_secret,
-                     user_agent='windows:github.com/matej2/location-info:v0.5 (by /u/mtj510)',
-                     username=username,
-                     password=password)
 # Cities
 CITY_REGEX = '.+$'
 
@@ -52,9 +48,18 @@ LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
 KEYWORD = 'Location:\s*\w+(\.|\n)'
 
-if reddit.read_only == False:
-    print("Connected and running.")
 
+def get_reddit_instance():
+    reddit = praw.Reddit(client_id=client_id,
+                         client_secret=client_secret,
+                         user_agent='windows:github.com/matej2/location-info:v0.5 (by /u/mtj510)',
+                         username=username,
+                         password=password)
+    if reddit.read_only == False:
+        print("Connected and running.")
+        return True
+    else:
+        return False
 
 def get_visit_link(txt):
     str = re.sub(SPACE_REGEX, '-', txt)
@@ -182,15 +187,7 @@ def get_taxonomy(title):
     for i in t['query']['pages']:
         a = t['query']['pages'][ i ]['revisions'][0]['*']
 
-    taxobox = a
-    taxobox = taxobox[taxobox.index("\n[["):]
-    taxobox = taxobox[:taxobox.index("}}")]
-
-    taxobox = taxobox.replace('[[', '')
-    taxobox = taxobox.replace(']]', '')
-    taxobox = taxobox.replace('<br>', '')
-    taxobox = taxobox.replace("''", '')
-    taxobox = taxobox.replace("&nbsp;", ' ')
+    taxobox = wtp.parse(a)
 
     t = []
     for i in taxobox.split("\n"):
@@ -203,7 +200,7 @@ def get_taxonomy(title):
     return "\n".join(t)
 
 
-def get_metadata(loc):
+def get_wikidata(loc):
     # Using request as a temp solution because wptools cannot be installed
     res = get('https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&titles={}&format=json'.format(loc))
     wikidata_id = None
@@ -216,13 +213,14 @@ def get_metadata(loc):
             wikidata_id = wiki_pages[page_id]['pageprops']['wikibase_item']
         except:
             print('Wiki API response is not found.')
+            return False
 
         print(wikidata_id)
 
         if wikidata_id is not None:
             client = Client()
             entity = client.get(wikidata_id, load=True)
-        print ('ok')
+        return True
 
 def read_keywords():
     from psaw import PushshiftAPI
@@ -241,6 +239,7 @@ def read_keywords():
 
 
 def main():
+    reddit = get_reddit_instance()
     try:
         inbox = list(reddit.inbox.unread())
     except praw.exceptions.APIException:
@@ -262,6 +261,7 @@ def main():
             sleep(10)
 
 def purge():
+    reddit = get_reddit_instance()
     for comment in reddit.redditor(user).comments.new(limit=20):
         if comment.score < 0:
             print(f'Removing comment {comment.body}')
