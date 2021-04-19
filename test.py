@@ -1,5 +1,6 @@
 import unittest
 
+from mwparserfromhell.nodes.extras import Parameter
 from wikipedia import wikipedia
 
 from main import get_visit_link, get_map_link, get_nearby_locations, get_location_meta, is_location, \
@@ -11,6 +12,7 @@ class TestCommonMethods(unittest.TestCase):
     def setUp(self):
         self.test_link = 'https: // www.google.com/'
         self.test_location = 'Baykit Airport'
+        self.test_location_alt = 'Kansas_City,_Missouri'
 
     def test_link_generation(self):
         test_str = '\'test string ~!˘'
@@ -43,6 +45,16 @@ class TestCommonMethods(unittest.TestCase):
         self.assertIn('locations/events nearby: Nothing', msg_valid)
         self.assertIn('links: [wiki](https: // www.google.com/)', msg_valid)
 
+    def test_taxonomy(self):
+        loc_name = Parameter('name', 'Kansas City')
+        loc_population = Parameter('population_total', 459787)
+        loc_subdivision = Parameter('subdivision_type', 'Country')
+
+        params = get_taxonomy(self.test_location_alt)
+
+        self.assertIn(loc_name, params)
+        self.assertIn(loc_population, params)
+        self.assertIn(loc_subdivision, params)
 
 if __name__ == '__main__':
     unittest.main()

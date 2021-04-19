@@ -3,13 +3,15 @@ import os
 import re
 import urllib
 from time import sleep
+
+import mwparserfromhell
+from mwparserfromhell.nodes.extras import Parameter
 from requests import get
 
 import praw
 import requests
 import wikipedia
 from wikidata.client import Client
-import wikitextparser as wtp
 
 from models import LocationMeta
 
@@ -178,26 +180,31 @@ def get_nearby_locations(lon, lat):
 
 # See https://stackoverflow.com/a/33336820/10538678
 def get_taxonomy(title):
-    r = requests.get('https://en.wikipedia.org/w/api.php?action=query&titles=' + title  + '&prop=revisions&rvprop=content&rvsection=0&format=json')
-
-    #https://en.wikipedia.org/wiki/Special:ApiSandbox#action=query&prop=revisions&format=json&rvprop=content&rvsection=0&rvcontentformat=text%2Fx-wiki&titles=Foraminifera
-
+    infobox = None
+    parsed_params = []
     a = ''
+
+    r = requests.get('https://en.wikipedia.org/w/api.php?action=query&titles=' + title  + '&prop=revisions&rvprop=content&rvsection=0&format=json')
     t = json.loads(r.text)
+
     for i in t['query']['pages']:
         a = t['query']['pages'][ i ]['revisions'][0]['*']
 
-    taxobox = wtp.parse(a)
+    template_list = mwparserfromhell.parse(a).filter_templates()
+    for template in template_list:
+        if 'Infobox' in template.name:
+            infobox = template
 
-    t = []
-    for i in taxobox.split("\n"):
-        if len(i) > 0:
-            if '|' in i:                    # for href titles
-                t.append( i.split('|')[1] ) # for href titles
-            else:
-                t.append( i )
-
-    return "\n".join(t)
+    if infobox is None:
+        return None
+    else:
+        for param in infobox.params:
+            add_par = Parameter(
+                name=param.name.strip(),
+                value=re.sub('\\n', '', param.value.strip())
+            )
+            parsed_params.append(add_par)
+        return parsed_params
 
 
 def get_wikidata(loc):
