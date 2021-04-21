@@ -44,11 +44,15 @@ NOT_CHAR = '\W+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 COMMA_REGEX = ',+'
 
-FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am I an author of this content. If you think this message is problematic, please contact developers mentioned below.)\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](https://github.com/matej2/location-info/blob/master/README.md#example) | [github](https://github.com/matej2/location-info) )'
+FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am ' \
+         'I an author of this content. If you think this message is problematic, please contact developers mentioned ' \
+         'below.)\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](' \
+         'https://github.com/matej2/location-info/blob/master/README.md#example) | [github](' \
+         'https://github.com/matej2/location-info) ) '
 NO_BODY = 'Location name not found in comment body.'
 LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
-KEYWORD = 'Location:\s*\w+(\.|\n)'
+KEYWORD = 'Location:\s*(.*)\.|.+$'
 
 
 def get_reddit_instance():
@@ -57,74 +61,87 @@ def get_reddit_instance():
                          user_agent='windows:github.com/matej2/location-info:v0.5 (by /u/mtj510)',
                          username=username,
                          password=password)
-    if reddit.read_only == False:
+    if not reddit.read_only:
         print("Connected and running.")
-        return True
+        return reddit
     else:
         return False
 
+
+def get_reddit_read_only_instance():
+    reddit = praw.Reddit(client_id=client_id,
+                         client_secret=client_secret,
+                         user_agent='windows:github.com/matej2/location-info:v0.5 (by /u/mtj510)')
+    if not reddit.read_only:
+        return False
+    else:
+        return reddit
+
+
 def get_visit_link(txt):
-    str = re.sub(SPACE_REGEX, '-', txt)
-    return VISIT_URL.format(str)
+    parsed = re.sub(SPACE_REGEX, '-', txt)
+    return VISIT_URL.format(parsed)
+
 
 def get_map_link(txt):
-    str = re.sub(SPACE_REGEX, '+', txt)
-    return MAPS_URL.format(str)
+    parsed = re.sub(SPACE_REGEX, '+', txt)
+    return MAPS_URL.format(parsed)
+
 
 def get_booking_url(txt):
-    str = re.sub(SPACE_REGEX, '+', txt)
-    return BOOKING_URL.format(str)
+    parsed = re.sub(SPACE_REGEX, '+', txt)
+    return BOOKING_URL.format(parsed)
+
 
 def get_wander_url(txt):
-    str = re.sub(SPACE_REGEX, '+', txt)
-    return WANDER_URL.format(str)
+    parsed = re.sub(SPACE_REGEX, '+', txt)
+    return WANDER_URL.format(parsed)
+
 
 def get_fb_url(txt):
-    str = urllib.parse.quote_plus(txt)
-    return FB_URL.format(str)
+    parsed = urllib.parse.quote_plus(txt)
+    return FB_URL.format(parsed)
+
 
 def get_ig_url(txt):
-    str = re.sub(NOT_CHAR, '', txt)
-    return IG_URL.format(str)
+    parsed = re.sub(NOT_CHAR, '', txt)
+    return IG_URL.format(parsed)
+
 
 def get_tw_url(txt):
-    str = urllib.parse.quote_plus(txt)
-    return TW_URL.format(str)
+    parsed = urllib.parse.quote_plus(txt)
+    return TW_URL.format(parsed)
+
 
 def get_th_url(txt):
-    str = re.sub(SPACE_REGEX, '+', txt)
-    return TB_URL.format(str)
+    parsed = re.sub(SPACE_REGEX, '+', txt)
+    return TB_URL.format(parsed)
+
 
 def get_pt_url(txt):
-    str = urllib.parse.quote_plus(txt)
-    return PT_URL.format(str)
+    parsed = urllib.parse.quote_plus(txt)
+    return PT_URL.format(parsed)
+
 
 def send_link(city, where):
-    message = ''
-    isSuccessful = False
-    wikiObj = None
-    comment = ''
+    is_successful = False
 
     if city is None:
-        comment = get_response_message(None, NO_BODY , None)
+        comment = get_response_message(None, NO_BODY, None)
     else:
-        # TODO: Remove once the bot gets higher rate limits
-        print(message)
+        wiki_obj = get_location_meta(city)
 
-        wikiObj = get_location_meta(city)
-
-        if wikiObj is None:
-            comment = get_response_message(None, LOC_NOT_FOUND.format(city) , None, 'None')
+        if wiki_obj is None:
+            comment = get_response_message(None, LOC_NOT_FOUND.format(city), None, 'None')
         else:
-            nearby = get_nearby_locations(wikiObj.lon, wikiObj.lat)
-            comment = get_response_message(wikiObj.title, wikiObj.desc, wikiObj.link, nearby)
+            nearby = get_nearby_locations(wiki_obj.lon, wiki_obj.lat)
+            comment = get_response_message(wiki_obj.title, wiki_obj.desc, wiki_obj.link, nearby)
 
-        print(f'{city} succsessfully processed')
-        isSuccessful = True
-
+        print(f'{city} successfully processed')
+        is_successful = True
 
     where.reply(comment)
-    return isSuccessful
+    return is_successful
 
 
 def get_location_meta(city):
@@ -138,9 +155,9 @@ def get_location_meta(city):
     for result in search:
         try:
             page = wikipedia.page(title=result, auto_suggest=False)
-        except wikipedia.DisambiguationError as e:
+        except wikipedia.DisambiguationError:
             return None
-        except wikipedia.PageError as e:
+        except wikipedia.PageError:
             return None
 
         if is_location(page):
@@ -169,14 +186,23 @@ def get_response_message(city, msg, link, nearby):
 '''
     else:
         message = f'''
-Information for location: {city}:\n\n {msg} \n\n- locations/events nearby: {nearby}\n\n- links: [wiki]({link}) ~ [map]({get_map_link(city)}) ~ [hotels]({get_booking_url(city)}) ~ [hiking]({get_wander_url(city)}) ~ [thumblr]({get_th_url(city)}) ~ [pinterest]({get_pt_url(city)})
+Information for location: {city}:\n\n {msg} \n\n
+- locations/events nearby: {nearby}\n\n
+- links: [wiki]({link}) 
+    ~[map]({get_map_link(city)}) 
+    ~ [hotels]({get_booking_url(city)}) 
+    ~ [hiking]({get_wander_url(city)}) 
+    ~ [thumblr]({get_th_url(city)}) 
+    ~ [pinterest]({get_pt_url(city)}) 
 {FOOTER}'''
 
     return message
 
+
 def get_nearby_locations(lon, lat):
-    list = wikipedia.geosearch(lon, lat, results=10)
-    return ', '.join(list)
+    loc_list = wikipedia.geosearch(lon, lat, results=10)
+    return ', '.join(loc_list)
+
 
 # See https://stackoverflow.com/a/33336820/10538678
 def get_taxonomy(title):
@@ -184,11 +210,13 @@ def get_taxonomy(title):
     parsed_params = []
     a = ''
 
-    r = requests.get('https://en.wikipedia.org/w/api.php?action=query&titles=' + title  + '&prop=revisions&rvprop=content&rvsection=0&format=json')
+    r = requests.get(
+        'https://en.wikipedia.org/w/api.php?action=query&titles=' + title + '&prop=revisions&rvprop=content&rvsection'
+                                                                            '=0&format=json')
     t = json.loads(r.text)
 
     for i in t['query']['pages']:
-        a = t['query']['pages'][ i ]['revisions'][0]['*']
+        a = t['query']['pages'][i]['revisions'][0]['*']
 
     template_list = mwparserfromhell.parse(a).filter_templates()
     for template in template_list:
@@ -229,20 +257,31 @@ def get_wikidata(loc):
             entity = client.get(wikidata_id, load=True)
         return True
 
-def read_keywords():
-    from psaw import PushshiftAPI
-    api = PushshiftAPI(reddit)
-    results = list(api.search_comments(
-            q='Location\:',
-            filter=['url', 'author', 'title', 'subreddit'],
-            limit=10,
-            subreddit='test'
-        )
-    )
-    for sub in results:
-        if sub.body and sub.author is not user:
-            print(sub.body)
-            print(re.search(KEYWORD, sub.body))
+
+def get_sub_by_keywords():
+    # the subreddit where the bot is to be live on
+    r = get_reddit_instance()
+    target_sub = "all"
+    subreddit = r.subreddit(target_sub)
+
+    # phrase to trigger the bot
+    trigger_phrase = "Location:"
+
+    # check every comment in the subreddit
+    for comment in subreddit.stream.comments():
+        # check the trigger_phrase in each comment
+        if trigger_phrase in comment.body:
+            print('Found it')
+
+            # extract the word from the comment
+            body = re.search(KEYWORD, comment.body, flags=re.IGNORECASE)
+            word = None
+
+            if body is not None:
+                word = body.group(1)
+
+            print(comment.submission.url)
+            print(f'Word: {word}')
 
 
 def main():
@@ -266,6 +305,7 @@ def main():
             else:
                 item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
             sleep(10)
+
 
 def purge():
     reddit = get_reddit_instance()

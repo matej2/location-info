@@ -11,6 +11,7 @@ class TestCommonMethods(unittest.TestCase):
 
     def setUp(self):
         self.test_link = 'https: // www.google.com/'
+        self.test_location_short = 'Baykit'
         self.test_location = 'Baykit Airport'
         self.test_location_alt = 'Kansas_City,_Missouri'
 
@@ -23,14 +24,19 @@ class TestCommonMethods(unittest.TestCase):
         self.assertEqual('https://www.google.com/maps/search/\'test+string+~!˘', map_link)
 
     def test_location_meta(self):
-        city_meta = get_location_meta('Baykit')
+        city_meta = get_location_meta(self.test_location_short)
 
         self.assertIsNotNone(city_meta)
         self.assertEqual(city_meta.title, self.test_location)
-        self.assertEqual(city_meta.desc, 'Baykit Airport (Russian: Аэропорт Байкит) (ICAO: UNIB) is an airport in Krasnoyarsk Krai, Russia located 1 km (0.62 mi) west of Baykit. It is a major utilitarian transport airfield.')
+        self.assertEqual(city_meta.desc, 'Baykit Airport (Russian: Аэропорт Байкит) (ICAO: UNIB) is an airport in '
+                                         'Krasnoyarsk Krai, Russia located 1 km (0.62 mi) west of Baykit. It is a '
+                                         'major utilitarian transport airfield.')
 
     def test_nearby_locations(self):
-        get_nearby_locations(61.676666670000003023233148269355297088623046875, 96.3550000000000039790393202565610408782958984375)
+        get_nearby_locations(
+            61.676666670000003023233148269355297088623046875,
+            96.3550000000000039790393202565610408782958984375
+        )
 
     def test_is_page(self):
         test_loc = wikipedia.page(title=self.test_location, auto_suggest=False)
@@ -55,6 +61,7 @@ class TestCommonMethods(unittest.TestCase):
         self.assertIn(loc_name, params)
         self.assertIn(loc_population, params)
         self.assertIn(loc_subdivision, params)
+
 
 if __name__ == '__main__':
     unittest.main()
