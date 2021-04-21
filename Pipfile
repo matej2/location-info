@@ -11,6 +11,7 @@ wikidata = "*"
 psaw = "*"
 setuptools = "*"
 mwparserfromhell = "*"
+requests = "*"
 
 [dev-packages]
 
