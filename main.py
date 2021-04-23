@@ -6,6 +6,8 @@ from time import sleep
 
 import mwparserfromhell
 from mwparserfromhell.nodes.extras import Parameter
+from praw.models import Submission
+from psaw import PushshiftAPI
 from requests import get
 
 import praw
@@ -43,6 +45,7 @@ SPACE_REGEX = '\s+'
 NOT_CHAR = '\W+'
 BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
 COMMA_REGEX = ',+'
+SPECIAL_CHARS = '[^A-Za-z0-9\s,]'
 
 FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am ' \
          'I an author of this content. If you think this message is problematic, please contact developers mentioned ' \
@@ -52,7 +55,8 @@ FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not re
 NO_BODY = 'Location name not found in comment body.'
 LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
-KEYWORD = 'Location:\s*(.*)\.|.+$'
+TRIGGER_PHARSE = 'location:'
+KEYWORD = 'Location:\s*([^.\n]+)'
 
 
 def get_reddit_instance():
@@ -257,8 +261,8 @@ def get_wikidata(loc):
             entity = client.get(wikidata_id, load=True)
         return True
 
-
-def get_sub_by_keywords():
+# Not used for now
+def get_sub_by_keywords_stream():
     # the subreddit where the bot is to be live on
     r = get_reddit_instance()
     target_sub = "all"
@@ -275,13 +279,64 @@ def get_sub_by_keywords():
 
             # extract the word from the comment
             body = re.search(KEYWORD, comment.body, flags=re.IGNORECASE)
-            word = None
 
             if body is not None:
-                word = body.group(1)
+                word = re.sub(SPECIAL_CHARS, '', body.group(1))
+                print(comment.submission.url)
+                print(f'Word: {word}')
 
-            print(comment.submission.url)
-            print(f'Word: {word}')
+def get_sub_by_keywords():
+    api = PushshiftAPI()
+    r = get_reddit_instance()
+    gen = api.search_submissions(
+        limit=100,
+        filter=['title', 'url'],
+        q='location:',
+        subreddit='test')
+    results = list(gen)
+
+    for s in results:
+        if TRIGGER_PHARSE in s.title.lower():
+
+            # extract the word from the comment
+            body = re.search(KEYWORD, s.title, flags=re.IGNORECASE)
+
+            if body is not None:
+                word = re.sub(SPECIAL_CHARS, '', body.group(1)).strip()
+                print(word, s.url)
+
+                post = Submission(r, url=s.url)
+                send_link(word, post)
+                return True
+
+
+def get_meta_post():
+    r = get_reddit_instance()
+    api = PushshiftAPI()
+    sub = r.subreddit('test')
+
+    gen = api.search_submissions(subreddit='test', filter=['title', 'url', 'selftext'], limit=10, q='meta', author=user)
+    result = list(gen)
+
+    if result == [] or result is None or result[0].selftext == '':
+        post = sub.submit(title='meta', selftext='{ "status": "created" }')
+    else:
+        post = Submission(r, url=result[0].url)
+    return post
+
+
+def update_config(obj):
+    conf = get_meta_post()
+    curr = json.loads(conf.selftext)
+
+    curr.update(obj)
+
+    updated = json.dumps(curr)
+    conf.edit(updated)
+
+
+def get_config():
+    return json.loads(get_meta_post().selftext)
 
 
 def main():

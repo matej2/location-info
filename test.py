@@ -4,7 +4,7 @@ from mwparserfromhell.nodes.extras import Parameter
 from wikipedia import wikipedia
 
 from main import get_visit_link, get_map_link, get_nearby_locations, get_location_meta, is_location, \
-    get_response_message, get_taxonomy
+    get_response_message, get_taxonomy, get_meta_post
 
 
 class TestCommonMethods(unittest.TestCase):
@@ -61,6 +61,11 @@ class TestCommonMethods(unittest.TestCase):
         self.assertIn(loc_name, params)
         self.assertIn(loc_population, params)
         self.assertIn(loc_subdivision, params)
+
+    def test_meta_post(self):
+        meta = get_meta_post()
+
+        self.assertIsNotNone(meta)
 
 
 if __name__ == '__main__':
