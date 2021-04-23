@@ -288,15 +288,20 @@ def get_sub_by_keywords_stream():
 def get_sub_by_keywords():
     api = PushshiftAPI()
     r = get_reddit_instance()
+    config = get_config()
+    last_processed_key = 'last_processed'
+
     gen = api.search_submissions(
         limit=100,
-        filter=['title', 'url'],
+        filter=['id', 'title', 'url'],
         q='location:',
         subreddit='test')
     results = list(gen)
 
     for s in results:
         if TRIGGER_PHARSE in s.title.lower():
+            if s.id == config.get(last_processed_key):
+                return True
 
             # extract the word from the comment
             body = re.search(KEYWORD, s.title, flags=re.IGNORECASE)
@@ -307,6 +312,11 @@ def get_sub_by_keywords():
 
                 post = Submission(r, url=s.url)
                 send_link(word, post)
+
+                last = {
+                    last_processed_key: post.id
+                }
+                update_config(last)
                 return True
 
 
