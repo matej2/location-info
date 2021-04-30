@@ -1,3 +1,4 @@
-from main import get_sub_by_keywords, main, get_meta_post, update_config, get_config
+from main import main, get_meta_post, update_config, get_config, process_keywords
 
-get_sub_by_keywords()
+process_keywords()
+main()

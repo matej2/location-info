@@ -6,6 +6,7 @@ from time import sleep
 
 import mwparserfromhell
 from mwparserfromhell.nodes.extras import Parameter
+from praw.exceptions import RedditAPIException
 from praw.models import Submission
 from psaw import PushshiftAPI
 from requests import get
@@ -56,6 +57,7 @@ NO_BODY = 'Location name not found in comment body.'
 LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
 TRIGGER_PHARSE = 'location:'
+TRIGGER_SUBREDDITS = 'naturephotography,AdventurePhotography'
 KEYWORD = 'Location:\s*([^.\n]+)'
 
 
@@ -144,7 +146,10 @@ def send_link(city, where):
         print(f'{city} successfully processed')
         is_successful = True
 
-    where.reply(comment)
+    try:
+        where.reply(comment)
+    except RedditAPIException as e:
+        print(e)
     return is_successful
 
 
@@ -285,7 +290,7 @@ def get_sub_by_keywords_stream():
                 print(comment.submission.url)
                 print(f'Word: {word}')
 
-def get_sub_by_keywords():
+def process_keywords():
     api = PushshiftAPI()
     r = get_reddit_instance()
     config = get_config()
@@ -295,7 +300,7 @@ def get_sub_by_keywords():
         limit=100,
         filter=['id', 'title', 'url'],
         q='location:',
-        subreddit='test')
+        subreddit=TRIGGER_SUBREDDITS)
     results = list(gen)
 
     for s in results:
@@ -308,9 +313,8 @@ def get_sub_by_keywords():
 
             if body is not None:
                 word = re.sub(SPECIAL_CHARS, '', body.group(1)).strip()
-                print(word, s.url)
 
-                post = Submission(r, url=s.url)
+                post = Submission(r, id=s.id)
                 send_link(word, post)
 
                 last = {
@@ -325,7 +329,7 @@ def get_meta_post():
     api = PushshiftAPI()
     sub = r.subreddit('test')
 
-    gen = api.search_submissions(subreddit='test', filter=['title', 'url', 'selftext'], limit=10, q='meta', author=user)
+    gen = api.search_submissions(subreddit='test', filter=['title', 'url', 'selftext'], limit=20, q='meta', author=user)
     result = list(gen)
 
     if result == [] or result is None or result[0].selftext == '':
