@@ -8,7 +8,7 @@ from main import main, purge, process_keywords
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(main, trigger=IntervalTrigger(minutes=30))
+    scheduler.add_job(main, trigger=IntervalTrigger(minutes=15))
     scheduler.add_job(process_keywords, trigger=IntervalTrigger(minutes=10))
     scheduler.add_job(purge, trigger=IntervalTrigger(hours=23))
 
