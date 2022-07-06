@@ -50,7 +50,7 @@ NO_BODY = 'Location name not found in comment body.'
 LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
 TRIGGER_PHARSE = 'location:'
-TRIGGER_SUBREDDITS = 'test'
+TRIGGER_SUBREDDITS = 'naturephotography,AdventurePhotography,snow,UrbanExploring,Outdoors'
 KEYWORD = 'Location:\s*([^.\n]+)'
 
 
