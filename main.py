@@ -2,19 +2,16 @@ import json
 import os
 import re
 import urllib
-from time import sleep, time
+from time import sleep
 
 import mwparserfromhell
+import praw
+import requests
+import wikipedia
 from mwparserfromhell.nodes.extras import Parameter
 from praw.exceptions import RedditAPIException
 from praw.models import Submission
 from psaw import PushshiftAPI
-from requests import get
-
-import praw
-import requests
-import wikipedia
-from wikidata.client import Client
 
 from models import LocationMeta
 
@@ -31,12 +28,8 @@ CITY_REGEX = '.+$'
 WIKI_URL = 'https://en.wikipedia.org/wiki/{}'
 VISIT_URL = 'https://www.visitacity.com/en/{}/activities/all-activities'
 MAPS_URL = 'https://www.google.com/maps/search/{}'
-# TELEPORT_URL = 'https://teleport.org/cities/madrid'
 BOOKING_URL = 'https://www.booking.com/searchresults.sl.html?ss={}'
 WANDER_URL = 'http://www.wandermap.net/sl/search/?q={}'
-FB_URL = 'https://www.facebook.com/search/places/?q={}'
-IG_URL = 'https://www.instagram.com/explore/tags/{}/'
-TW_URL = 'https://twitter.com/search?q={}&src=typeahead_click&f=image'
 TB_URL = 'https://www.tumblr.com/search/{}'
 PT_URL = 'https://www.pinterest.com/search/pins/?q={}'
 
@@ -74,16 +67,6 @@ def get_reddit_instance():
         return False
 
 
-def get_reddit_read_only_instance():
-    reddit = praw.Reddit(client_id=client_id,
-                         client_secret=client_secret,
-                         user_agent='windows:github.com/matej2/location-info:v0.5 (by /u/mtj510)')
-    if not reddit.read_only:
-        return False
-    else:
-        return reddit
-
-
 def get_visit_link(txt):
     parsed = re.sub(SPACE_REGEX, '-', txt)
     return VISIT_URL.format(parsed)
@@ -102,21 +85,6 @@ def get_booking_url(txt):
 def get_wander_url(txt):
     parsed = re.sub(SPACE_REGEX, '+', txt)
     return WANDER_URL.format(parsed)
-
-
-def get_fb_url(txt):
-    parsed = urllib.parse.quote_plus(txt)
-    return FB_URL.format(parsed)
-
-
-def get_ig_url(txt):
-    parsed = re.sub(NOT_CHAR, '', txt)
-    return IG_URL.format(parsed)
-
-
-def get_tw_url(txt):
-    parsed = urllib.parse.quote_plus(txt)
-    return TW_URL.format(parsed)
 
 
 def get_th_url(txt):
@@ -241,52 +209,6 @@ def get_taxonomy(title):
             parsed_params.append(add_par)
         return parsed_params
 
-
-def get_wikidata(loc):
-    # Using request as a temp solution because wptools cannot be installed
-    res = get('https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&titles={}&format=json'.format(loc))
-    wikidata_id = None
-
-    if res.status_code == 200:
-        try:
-            wiki_res = json.loads(res.content)
-            wiki_pages = wiki_res['query']['pages']
-            page_id = list(wiki_pages.keys())[0]
-            wikidata_id = wiki_pages[page_id]['pageprops']['wikibase_item']
-        except:
-            print('Wiki API response is not found.')
-            return False
-
-        print(wikidata_id)
-
-        if wikidata_id is not None:
-            client = Client()
-            entity = client.get(wikidata_id, load=True)
-        return True
-
-# Not used for now
-def get_sub_by_keywords_stream():
-    # the subreddit where the bot is to be live on
-    r = get_reddit_instance()
-    target_sub = "all"
-    subreddit = r.subreddit(target_sub)
-
-    # phrase to trigger the bot
-    trigger_phrase = "Location:"
-
-    # check every comment in the subreddit
-    for comment in subreddit.stream.comments():
-        # check the trigger_phrase in each comment
-        if trigger_phrase in comment.body:
-            print('Found it')
-
-            # extract the word from the comment
-            body = re.search(KEYWORD, comment.body, flags=re.IGNORECASE)
-
-            if body is not None:
-                word = re.sub(SPECIAL_CHARS, '', body.group(1))
-                print(comment.submission.url)
-                print(f'Word: {word}')
 
 def process_keywords():
     api = PushshiftAPI()
