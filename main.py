@@ -210,6 +210,13 @@ def get_taxonomy(title):
         return parsed_params
 
 
+def is_replied(submission):
+    for comment in submission.comments:
+        if comment.author.name == user:
+            return True
+    return False
+
+
 def process_keywords():
     api = PushshiftAPI()
     r = get_reddit_instance()
@@ -237,7 +244,10 @@ def process_keywords():
                 word = re.sub(SPECIAL_CHARS, '', body.group(1)).strip()
 
                 post = Submission(r, id=s.id)
-                comment_id = send_link(word, post)
+                if is_replied(post) is False:
+                    comment_id = send_link(word, post)
+                else:
+                    return True
 
                 if last_processed is '':
                     last_processed = comment_id
