@@ -2,7 +2,7 @@ import json
 import os
 import re
 import urllib
-from time import sleep
+from time import sleep, time
 
 import mwparserfromhell
 from mwparserfromhell.nodes.extras import Parameter
@@ -57,7 +57,7 @@ NO_BODY = 'Location name not found in comment body.'
 LOC_NOT_FOUND = 'No summary found for {}. Either unknown location or mistype.'
 
 TRIGGER_PHARSE = 'location:'
-TRIGGER_SUBREDDITS = 'naturephotography,AdventurePhotography,snow,UrbanExploring,Outdoors'
+TRIGGER_SUBREDDITS = 'test'
 KEYWORD = 'Location:\s*([^.\n]+)'
 
 
@@ -130,7 +130,6 @@ def get_pt_url(txt):
 
 
 def send_link(city, where):
-    is_successful = False
 
     if city is None:
         comment = get_response_message(None, NO_BODY, None)
@@ -144,13 +143,12 @@ def send_link(city, where):
             comment = get_response_message(wiki_obj.title, wiki_obj.desc, wiki_obj.link, nearby)
 
         print(f'{city} successfully processed')
-        is_successful = True
 
     try:
-        where.reply(comment)
+        comment = where.reply(comment)
     except RedditAPIException as e:
         print(e)
-    return is_successful
+    return comment.id
 
 
 def get_location_meta(city):
@@ -295,11 +293,13 @@ def process_keywords():
     r = get_reddit_instance()
     config = get_config()
     last_processed_key = 'last_processed'
+    last_processed = ''
 
+    # Retrieves subs ordered by time descending
     gen = api.search_submissions(
         limit=100,
         filter=['id', 'title', 'url'],
-        q='location:',
+        q='Location:|location:',
         subreddit=TRIGGER_SUBREDDITS)
     results = list(gen)
 
@@ -315,21 +315,25 @@ def process_keywords():
                 word = re.sub(SPECIAL_CHARS, '', body.group(1)).strip()
 
                 post = Submission(r, id=s.id)
-                send_link(word, post)
+                comment_id = send_link(word, post)
 
-                last = {
-                    last_processed_key: post.id
-                }
-                update_config(last)
-                return True
+                if last_processed is '':
+                    last_processed = comment_id
+                sleep(3)
+
+    last = {
+        last_processed_key: post.id
+    }
+    update_config(last)
+    return True
 
 
 def get_meta_post():
     r = get_reddit_instance()
     api = PushshiftAPI()
-    sub = r.subreddit('test')
+    sub = r.subreddit('u_LocationInfoBot')
 
-    gen = api.search_submissions(subreddit='test', filter=['title', 'url', 'selftext'], limit=20, q='meta', author=user)
+    gen = api.search_submissions(filter=['title', 'selftext', 'url'], limit=20, q='meta', author=user)
     result = list(gen)
 
     if result == [] or result is None or result[0].selftext == '':
