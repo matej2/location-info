@@ -144,6 +144,14 @@ def send_link(city, where):
     return is_successful
 
 
+def send_map_data():
+    import base64
+    client_id = "axXSSBVuvOyGVzh4PurvKaq5MHXMm7FtrHgDMi4u"
+    secret = "1fuv5WVfR7A5BlF0o155H7s5bLgXlwWLhi3Y7pdJ9aJuCdl0XV5Cxgd0tri7nSzC80qyrovh8qFXFHgFAAc0ldPNn5ZYLanxSm1SI1rxlRrWUP591wpHDGa3pSpB6dCZ"
+    credential = "{0}:{1}".format(client_id, secret)
+    base64.b64encode(credential.encode("utf-8"))
+
+
 def get_location_meta(city):
     search = wikipedia.search(city)
     st = 0
