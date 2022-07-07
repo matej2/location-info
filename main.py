@@ -245,16 +245,16 @@ def process_keywords():
 
                 post = Submission(r, id=s.id)
                 if is_replied(post) is False:
-                    comment_id = send_link(word, post)
+                    send_link(word, post)
                 else:
                     return True
 
                 if last_processed is '':
-                    last_processed = comment_id
+                    last_processed = post.id
                 sleep(3)
 
     last = {
-        last_processed_key: post.id
+        last_processed_key: last_processed
     }
     update_config(last)
     return True
