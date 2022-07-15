@@ -78,20 +78,32 @@ def send_photo(city, photo):
     else:
         wiki_obj = get_location_meta(city)
 
-        if wiki_obj is not None:
-            response['location'] = {}
-            response['location']['title'] = wiki_obj.title
-            response['location']['lat'] = wiki_obj.lat
-            response['location']['lng'] = wiki_obj.lon
-            data = {
-                "location": 1001,
-                "name": "geek",
-                "passion": "coding",
+        if wiki_obj is not None and ('i.reddit' in photo.url or 'imgur' in photo.url ):
+            payload = {
+                "location": {
+                    "title": str(wiki_obj.title),
+                    "lat": str(wiki_obj.lat),
+                    "lng": str(wiki_obj.lon)
+                },
+                "photo": {
+                    "title": str(photo.title),
+                    "url": str(photo.url)
+                }
             }
 
-            requests.post('http://128.0.0.1:8000/photos', json=data)
+            url = "http://127.0.0.1:8000/photo/"
 
-        print(f'{city} successfully processed')
+            headers = {
+                'Content-Type': 'application/javascript'
+            }
+
+            response = requests.request("POST", url, headers=headers, json=payload)
+
+            print(f'{city} successfully processed')
+        else:
+            print(f'{city} not found')
+
+
 
 
 
@@ -180,7 +192,7 @@ def process_keywords():
 
     # Retrieves subs ordered by time descending
     gen = api.search_submissions(
-        limit=100,
+        limit=300,
         filter=['id', 'title', 'url'],
         title='Location:|location:',
         q='i.reddit|imgur')
