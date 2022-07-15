@@ -71,6 +71,30 @@ def send_link(city, where):
     return comment.id
 
 
+def send_photo(city, photo):
+    response = {}
+    if city is None:
+        comment = get_response_message(None, NO_BODY, None)
+    else:
+        wiki_obj = get_location_meta(city)
+
+        if wiki_obj is not None:
+            response['location'] = {}
+            response['location']['title'] = wiki_obj.title
+            response['location']['lat'] = wiki_obj.lat
+            response['location']['lng'] = wiki_obj.lon
+            data = {
+                "location": 1001,
+                "name": "geek",
+                "passion": "coding",
+            }
+
+            requests.post('http://128.0.0.1:8000/photos', json=data)
+
+        print(f'{city} successfully processed')
+
+
+
 def get_location_meta(city):
     search = wikipedia.search(city)
     st = 0
@@ -158,11 +182,12 @@ def process_keywords():
     gen = api.search_submissions(
         limit=100,
         filter=['id', 'title', 'url'],
-        q='Location:|location:',
-        subreddit=TRIGGER_SUBREDDITS)
+        title='Location:|location:',
+        q='i.reddit|imgur')
     results = list(gen)
 
     for s in results:
+        print(s.title.lower())
         if TRIGGER_PHARSE in s.title.lower():
             if s.id == config.get(last_processed_key):
                 return True
@@ -175,7 +200,8 @@ def process_keywords():
 
                 post = Submission(r, id=s.id)
                 if is_replied(post) is False:
-                    send_link(word, post)
+                    send_photo(word, s)
+                    print('send link')
                 else:
                     return True
 
@@ -186,7 +212,7 @@ def process_keywords():
     last = {
         last_processed_key: last_processed
     }
-    update_config(last)
+    #update_config(last)
     return True
 
 
