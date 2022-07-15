@@ -82,12 +82,12 @@ def send_photo(city, photo):
             payload = {
                 "location": {
                     "title": str(wiki_obj.title),
-                    "lat": str(wiki_obj.lat),
-                    "lng": str(wiki_obj.lon)
+                    "lat": str(wiki_obj.lon),
+                    "lng": str(wiki_obj.lat)
                 },
                 "photo": {
                     "title": str(photo.title),
-                    "url": str(photo.url)
+                    "url": str('https://www.reddit.com' + photo.permalink)
                 }
             }
 
@@ -178,7 +178,7 @@ def get_taxonomy(title):
 
 def is_replied(submission):
     for comment in submission.comments:
-        if comment.author.name == user:
+        if comment.author is not None and comment.author.name == user:
             return True
     return False
 
@@ -193,13 +193,13 @@ def process_keywords():
     # Retrieves subs ordered by time descending
     gen = api.search_submissions(
         limit=300,
-        filter=['id', 'title', 'url'],
+        filter=['id', 'title', 'url', 'permalink'],
         title='Location:|location:',
-        q='i.reddit|imgur')
+        q='i.reddit|imgur',
+        sort='created_utc:desc')
     results = list(gen)
 
     for s in results:
-        print(s.title.lower())
         if TRIGGER_PHARSE in s.title.lower():
             if s.id == config.get(last_processed_key):
                 return True
@@ -213,7 +213,6 @@ def process_keywords():
                 post = Submission(r, id=s.id)
                 if is_replied(post) is False:
                     send_photo(word, s)
-                    print('send link')
                 else:
                     return True
 
