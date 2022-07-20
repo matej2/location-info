@@ -87,7 +87,8 @@ def send_photo(city, photo):
                 },
                 "photo": {
                     "title": str(photo.title),
-                    "url": str('https://www.reddit.com' + photo.permalink)
+                    "url": str('https://www.reddit.com' + photo.permalink),
+                    "thumb": str(photo.thumbnail)
                 }
             }
 
