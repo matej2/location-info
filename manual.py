@@ -1,4 +1,5 @@
-from main import main, get_meta_post, update_config, get_config, process_keywords
+from main import main, process_keywords, process_past_comments
 
-process_keywords()
+#process_keywords()
 main()
+process_past_comments()

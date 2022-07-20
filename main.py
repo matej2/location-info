@@ -78,7 +78,7 @@ def send_photo(city, photo):
     else:
         wiki_obj = get_location_meta(city)
 
-        if wiki_obj is not None and ('i.reddit' in photo.url or 'imgur' in photo.url ):
+        if wiki_obj is not None and ('i.redd.it' in photo.url or 'imgur' in photo.url ):
             payload = {
                 "location": {
                     "title": str(wiki_obj.title),
@@ -212,7 +212,8 @@ def process_keywords():
 
                 post = Submission(r, id=s.id)
                 if is_replied(post) is False:
-                    send_photo(word, s)
+                    #send_photo(word, s)
+                    print('sending')
                 else:
                     return True
 
@@ -277,6 +278,34 @@ def main():
             else:
                 item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
             sleep(10)
+
+
+def get_comments():
+    reddit = get_reddit_instance()
+    comments = reddit.redditor(user).comments.new(limit=100)
+    filtered_comments = []
+
+    for c in comments:
+        if LOC_NOT_FOUND not in c.body and 'I am a bot and this was an automated message' in c.body:
+            filtered_comments.append(c)
+    return filtered_comments
+
+
+def get_location_from_comment(c):
+    result = re.search('Information for location:\s*(.*):$', c.body, flags=re.IGNORECASE | re.MULTILINE)
+    if result is not None:
+        return result.group(1)
+    else:
+        return None
+
+
+def process_past_comments():
+    comments = get_comments()
+    for c in comments:
+        location = get_location_from_comment(c)
+        if location is not None:
+            submission = c.submission
+            send_photo(location, submission)
 
 
 def purge():
