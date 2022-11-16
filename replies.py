@@ -49,7 +49,7 @@ def get_pt_url(txt):
     return PT_URL.format(parsed)
 
 
-def get_response_message(city, msg, link, nearby):
+def get_response_message(city, msg, nearby):
     if city is None:
         message = f'''
 {msg}
@@ -58,13 +58,7 @@ def get_response_message(city, msg, link, nearby):
     else:
         message = f'''
 Information for location: {city}:\n\n {msg} \n\n
-- locations/events nearby: {nearby}\n\n
-- links: [wiki]({link}) 
-    ~[map]({get_map_link(city)}) 
-    ~ [hotels]({get_booking_url(city)}) 
-    ~ [hiking]({get_wander_url(city)}) 
-    ~ [thumblr]({get_th_url(city)}) 
-    ~ [pinterest]({get_pt_url(city)}) 
+Locations/events nearby: {nearby}\n\n
 {FOOTER}'''
 
     return message

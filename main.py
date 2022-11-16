@@ -60,7 +60,7 @@ def send_link(city, where):
             comment = get_response_message(None, LOC_NOT_FOUND.format(city), None, 'None')
         else:
             nearby = get_nearby_locations(wiki_obj.lon, wiki_obj.lat)
-            comment = get_response_message(wiki_obj.title, wiki_obj.desc, wiki_obj.link, nearby)
+            comment = get_response_message(wiki_obj.title, wiki_obj.desc, nearby)
 
         print(f'{city} successfully processed')
 
@@ -268,6 +268,23 @@ def main():
     inbox.reverse()
 
     for item in inbox:
+        if mention.lower() in item.body.lower():
+            text = item.body
+            result = re.search(BODY_REGEX, text, flags=re.IGNORECASE)
+            if result is not None:
+                body = result.group(1)
+
+                if send_link(body, item):
+                    item.mark_read()
+            else:
+                item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
+            sleep(10)
+
+
+def main_stream():
+    reddit = get_reddit_instance()
+
+    for item in reddit.inbox.stream():
         if mention.lower() in item.body.lower():
             text = item.body
             result = re.search(BODY_REGEX, text, flags=re.IGNORECASE)
