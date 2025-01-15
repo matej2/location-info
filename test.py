@@ -3,8 +3,9 @@ import unittest
 from mwparserfromhell.nodes.extras import Parameter
 from wikipedia import wikipedia
 
-from main import get_visit_link, get_map_link, get_nearby_locations, get_location_meta, is_location, \
+from main import get_nearby_locations, get_location_meta, is_location, \
     get_response_message, get_taxonomy, get_meta_post
+from replies import get_visit_link, get_map_link
 
 
 class TestCommonMethods(unittest.TestCase):
@@ -45,7 +46,7 @@ class TestCommonMethods(unittest.TestCase):
     def test_response_message(self):
         nearby = 'Nothing'
 
-        msg_valid = get_response_message(self.test_location, None, self.test_link, nearby)
+        msg_valid = get_response_message(self.test_location, None, nearby)
 
         self.assertIn('Information for location: Baykit Airport', msg_valid)
         self.assertIn('locations/events nearby: Nothing', msg_valid)
