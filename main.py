@@ -14,7 +14,7 @@ from psaw import PushshiftAPI
 
 from const import Const
 from models import LocationMeta
-from replies import FOOTER, LOC_NOT_FOUND, get_response_message, NO_BODY
+from replies import get_response_message
 
 user = 'LocationInfoBot'
 mention = f'u/{user}'
@@ -22,19 +22,6 @@ client_id = os.environ.get('CLIENT_ID')
 client_secret = os.environ.get('CLIENT_SECRET')
 username = os.environ.get('USERNAME')
 password = os.environ.get('PASS')
-
-# Cities
-CITY_REGEX = '.+$'
-
-NOT_CHAR = '\W+'
-BODY_REGEX = f'{mention}\s*({CITY_REGEX})'
-COMMA_REGEX = ',+'
-SPECIAL_CHARS = '[^A-Za-z0-9\s,]'
-
-# TODO Add links - info about country
-TRIGGER_PHARSE = 'location:'
-TRIGGER_SUBREDDITS = 'naturephotography,AdventurePhotography,snow,UrbanExploring,Outdoors'
-KEYWORD = 'Location:\s*([^.\n]+)'
 
 
 def get_reddit_instance():
@@ -53,20 +40,20 @@ def get_reddit_instance():
 def reply_to_comment(city: str, target_comment: Comment):
 
     if city is None:
-        comment = get_response_message(None, NO_BODY, Const.NONE)
+        new_comment = get_response_message(None, Const.NO_BODY, None)
     else:
         wiki_meta = get_location_meta(city)
 
         if wiki_meta is None:
-            comment = get_response_message(None, LOC_NOT_FOUND.format(city), Const.NONE)
+            new_comment = get_response_message(None, Const.LOC_NOT_FOUND.format(city), None)
         else:
             nearby_locations = get_nearby_locations(wiki_meta.lon, wiki_meta.lat)
-            comment = get_response_message(wiki_meta.title, wiki_meta.desc, nearby_locations)
+            new_comment = get_response_message(wiki_meta.title, wiki_meta.desc, nearby_locations)
 
         print(Const.successfully_processed(city))
 
     try:
-        result_comment = target_comment.reply(comment)
+        result_comment = target_comment.reply(new_comment)
     except RedditAPIException as e:
         print(e)
     return result_comment.id
@@ -75,7 +62,7 @@ def reply_to_comment(city: str, target_comment: Comment):
 def send_photo(city, photo):
     response = {}
     if city is None:
-        comment = get_response_message(None, NO_BODY, None)
+        comment = get_response_message(None, Const.NO_BODY, None)
     else:
         wiki_obj = get_location_meta(city)
 
@@ -199,15 +186,15 @@ def process_inbox_by_keywords():
     comment_results = list(gen)
 
     for comment in comment_results:
-        if TRIGGER_PHARSE in comment.title.lower():
+        if Const.TRIGGER_PHARSE in comment.title.lower():
             if comment.id == config.get(last_processed_key):
                 return True
 
             # extract the word from the comment
-            body = re.search(KEYWORD, comment.title, flags=re.IGNORECASE)
+            body = re.search(Const.KEYWORD, comment.title, flags=re.IGNORECASE)
 
             if body is not None:
-                word = re.sub(SPECIAL_CHARS, '', body.group(1)).strip()
+                word = re.sub(Const.SPECIAL_CHARS, '', body.group(1)).strip()
 
                 post = Submission(r, id=comment.id)
                 if is_replied(post) is False:
@@ -268,14 +255,14 @@ def main():
     for item in inbox:
         if mention.lower() in item.body.lower():
             text = item.body
-            result = re.search(BODY_REGEX, text, flags=re.IGNORECASE)
+            result = re.search(Const.body_regex(mention), text, flags=re.IGNORECASE)
             if result is not None:
                 body = result.group(1)
 
                 if reply_to_comment(body, item):
                     item.mark_read()
             else:
-                item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
+                item.reply(Const.NOT_DETECTED)
             sleep(10)
 
 
@@ -285,14 +272,14 @@ def main_stream():
     for item in reddit.inbox.stream():
         if mention.lower() in item.body.lower():
             text = item.body
-            result = re.search(BODY_REGEX, text, flags=re.IGNORECASE)
+            result = re.search(Const.body_regex(mention), text, flags=re.IGNORECASE)
             if result is not None:
                 body = result.group(1)
 
                 if reply_to_comment(body, item):
                     item.mark_read()
             else:
-                item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
+                item.reply(Const.NOT_DETECTED)
             sleep(10)
 
 
@@ -302,7 +289,7 @@ def get_comments():
     filtered_comments = []
 
     for c in comments:
-        if LOC_NOT_FOUND not in c.body and 'I am a bot and this was an automated message' in c.body:
+        if Const.LOC_NOT_FOUND not in c.body and 'I am a bot and this was an automated message' in c.body:
             filtered_comments.append(c)
     return filtered_comments
 
