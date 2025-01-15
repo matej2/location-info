@@ -14,6 +14,7 @@ mwparserfromhell = "*"
 requests = "*"
 
 [dev-packages]
+pycrunch-engine = "*"
 
 [requires]
 python_version = "3.9"
