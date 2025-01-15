@@ -49,7 +49,7 @@ def get_pt_url(txt):
     return PT_URL.format(parsed)
 
 
-def get_response_message(city, msg, nearby):
+def get_response_message(city, msg, nearby: str):
     if city is None:
         message = f'''
 {msg}

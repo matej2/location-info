@@ -9,9 +9,10 @@ import requests
 import wikipedia
 from mwparserfromhell.nodes.extras import Parameter
 from praw.exceptions import RedditAPIException
-from praw.models import Submission
+from praw.models import Submission, Comment
 from psaw import PushshiftAPI
 
+from const import Const
 from models import LocationMeta
 from replies import FOOTER, LOC_NOT_FOUND, get_response_message, NO_BODY
 
@@ -49,26 +50,26 @@ def get_reddit_instance():
         return False
 
 
-def send_link(city, where):
+def reply_to_comment(city: str, target_comment: Comment):
 
     if city is None:
-        comment = get_response_message(None, NO_BODY, None)
+        comment = get_response_message(None, NO_BODY, Const.NONE)
     else:
-        wiki_obj = get_location_meta(city)
+        wiki_meta = get_location_meta(city)
 
-        if wiki_obj is None:
-            comment = get_response_message(None, LOC_NOT_FOUND.format(city), None, 'None')
+        if wiki_meta is None:
+            comment = get_response_message(None, LOC_NOT_FOUND.format(city), Const.NONE)
         else:
-            nearby = get_nearby_locations(wiki_obj.lon, wiki_obj.lat)
-            comment = get_response_message(wiki_obj.title, wiki_obj.desc, nearby)
+            nearby_locations = get_nearby_locations(wiki_meta.lon, wiki_meta.lat)
+            comment = get_response_message(wiki_meta.title, wiki_meta.desc, nearby_locations)
 
-        print(f'{city} successfully processed')
+        print(Const.successfully_processed(city))
 
     try:
-        comment = where.reply(comment)
+        result_comment = target_comment.reply(comment)
     except RedditAPIException as e:
         print(e)
-    return comment.id
+    return result_comment.id
 
 
 def send_photo(city, photo):
@@ -103,9 +104,6 @@ def send_photo(city, photo):
             print(f'{city} successfully processed')
         else:
             print(f'{city} not found')
-
-
-
 
 
 def get_location_meta(city):
@@ -184,7 +182,7 @@ def is_replied(submission):
     return False
 
 
-def process_keywords():
+def process_inbox_by_keywords():
     api = PushshiftAPI()
     r = get_reddit_instance()
     config = get_config()
@@ -198,20 +196,20 @@ def process_keywords():
         title='Location:|location:',
         q='i.reddit|imgur',
         sort='created_utc:desc')
-    results = list(gen)
+    comment_results = list(gen)
 
-    for s in results:
-        if TRIGGER_PHARSE in s.title.lower():
-            if s.id == config.get(last_processed_key):
+    for comment in comment_results:
+        if TRIGGER_PHARSE in comment.title.lower():
+            if comment.id == config.get(last_processed_key):
                 return True
 
             # extract the word from the comment
-            body = re.search(KEYWORD, s.title, flags=re.IGNORECASE)
+            body = re.search(KEYWORD, comment.title, flags=re.IGNORECASE)
 
             if body is not None:
                 word = re.sub(SPECIAL_CHARS, '', body.group(1)).strip()
 
-                post = Submission(r, id=s.id)
+                post = Submission(r, id=comment.id)
                 if is_replied(post) is False:
                     #send_photo(word, s)
                     print('sending')
@@ -274,7 +272,7 @@ def main():
             if result is not None:
                 body = result.group(1)
 
-                if send_link(body, item):
+                if reply_to_comment(body, item):
                     item.mark_read()
             else:
                 item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
@@ -291,7 +289,7 @@ def main_stream():
             if result is not None:
                 body = result.group(1)
 
-                if send_link(body, item):
+                if reply_to_comment(body, item):
                     item.mark_read()
             else:
                 item.reply(f'Did not detect any message. Please try again\n\n{FOOTER}')
