@@ -16,7 +16,7 @@ def main_stream():
             if result is not None:
                 body = result.group(1)
 
-                if reddit_instance.reply_to_comment(body, item):
+                if reddit_client.reply_to_comment(body, item):
                     item.mark_read()
             else:
                 item.reply(Const.NOT_DETECTED)

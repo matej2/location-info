@@ -47,18 +47,21 @@ def get_response_message(city: str, msg: str, nearby: Optional[str]):
     if city is None:
         message = f'''
 {msg}
-{FOOTER}
+{Const.FOOTER}
 '''
     else:
         message = f'''
 Information for location: {city}:\n\n {msg} \n\n
+
+Links:\n
+[wiki]({WIKI_URL.format(city)})\n
+[visitacity]({get_visit_link(city)})\n
+[google maps]({get_map_link(city)})\n
+[booking]({get_booking_url(city)})\n
+[wandermap]({get_wander_url(city)})\n
+[tumblr]({get_th_url(city)})\n
+[pinterest]({get_pt_url(city)})\n
 Locations/events nearby: {nearby}\n\n
-{FOOTER}'''
+{Const.FOOTER}'''
 
     return message
-
-def is_replied(submission):
-    for comment in submission.comments:
-        if comment.author is not None and comment.author.name == user:
-            return True
-    return False
