@@ -24,6 +24,11 @@ class Const:
 
     SPACE_REGEX = '\s+'
     NONE = 'None'
+
+    # Reddit meta
+    user = 'LocationInfoBot'
+    mention = f'u/{user}'
+
     @staticmethod
     def successfully_processed(city: str):
         """

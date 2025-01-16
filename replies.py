@@ -55,3 +55,9 @@ Locations/events nearby: {nearby}\n\n
 {FOOTER}'''
 
     return message
+
+def is_replied(submission):
+    for comment in submission.comments:
+        if comment.author is not None and comment.author.name == user:
+            return True
+    return False
