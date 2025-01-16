@@ -12,8 +12,8 @@ class Const:
     KEYWORD = 'Location:\s*([^.\n]+)'
 
     # Response messages
-    FOOTER = '\n\n---\n\n^(I am a bot and this was an automated message. I am not responsible for the content neither am ' \
-             'I an author of this content. If you think this message is problematic, please contact developers mentioned ' \
+    FOOTER = '\n\n---\n\n^(Content is intended to improve search engine optimization by providing information about location.' \
+              ' I am a bot and this was an automated message.' \
              'below.)\n\n^(Author: [u/mtj510](https://www.reddit.com/user/mtj510) | [how to use this bot](' \
              'https://github.com/matej2/location-info/blob/master/README.md#example) | [github](' \
              'https://github.com/matej2/location-info) ) '

@@ -54,45 +54,10 @@ class WikiClient:
         return False
 
     @staticmethod
-    def get_nearby_locations(lon: str, lat: str):
+    def get_nearby_locations(lon: float, lat: float):
         """
         :return:
         str: A list of nearby locations
         """
         loc_list = wikipedia.geosearch(lon, lat, results=10)
         return ', '.join(loc_list)
-
-    # See https://stackoverflow.com/a/33336820/10538678
-    @staticmethod
-    def get_taxonomy(title: str):
-        """
-        :return:
-        list[Parameter]: A list of parameters
-        """
-        infobox = None
-        parsed_params = []
-        a = ''
-
-        r = requests.get(
-            'https://en.wikipedia.org/w/api.php?action=query&titles=' + title + '&prop=revisions&rvprop=content&rvsection'
-                                                                                '=0&format=json')
-        t = json.loads(r.text)
-
-        for i in t['query']['pages']:
-            a = t['query']['pages'][i]['revisions'][0]['*']
-
-        template_list = mwparserfromhell.parse(a).filter_templates()
-        for template in template_list:
-            if 'Infobox' in template.name:
-                infobox = template
-
-        if infobox is None:
-            return None
-        else:
-            for param in infobox.params:
-                add_par = Parameter(
-                    name=param.name.strip(),
-                    value=re.sub('\\n', '', param.value.strip())
-                )
-                parsed_params.append(add_par)
-            return parsed_params
