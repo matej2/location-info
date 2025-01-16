@@ -1,15 +1,10 @@
 class Const:
-    # Cities
+    # Basic config
+    user = 'LocationInfoBot'
+    mention = f'u/{user}'
+
+    # Regex selectors
     CITY_REGEX = '.+$'
-
-    NOT_CHAR = '\W+'
-    COMMA_REGEX = ',+'
-    SPECIAL_CHARS = '[^A-Za-z0-9\s,]'
-
-    # TODO Add links - info about country
-    TRIGGER_PHARSE = 'location:'
-    TRIGGER_SUBREDDITS = 'naturephotography,AdventurePhotography,snow,UrbanExploring,Outdoors'
-    KEYWORD = 'Location:\s*([^.\n]+)'
 
     # Response messages
     FOOTER = '\n\n---\n\n^(Content is intended to improve search engine optimization by providing information about location.' \
@@ -23,11 +18,6 @@ class Const:
     NOT_DETECTED = f'Did not detect any message. Please try again\n\n{FOOTER}'
 
     SPACE_REGEX = '\s+'
-    NONE = 'None'
-
-    # Reddit meta
-    user = 'LocationInfoBot'
-    mention = f'u/{user}'
 
     @staticmethod
     def successfully_processed(city: str):
