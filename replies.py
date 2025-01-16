@@ -12,37 +12,38 @@ WANDER_URL = 'http://www.wandermap.net/sl/search/?q={}'
 TB_URL = 'https://www.tumblr.com/search/{}'
 PT_URL = 'https://www.pinterest.com/search/pins/?q={}'
 
-def get_visit_link(txt):
+
+def get_visit_link(txt: str):
     parsed = re.sub(Const.SPACE_REGEX, '-', txt)
     return VISIT_URL.format(parsed)
 
 
-def get_map_link(txt):
+def get_map_link(txt: str):
     parsed = re.sub(Const.SPACE_REGEX, '+', txt)
     return MAPS_URL.format(parsed)
 
 
-def get_booking_url(txt):
+def get_booking_url(txt: str):
     parsed = re.sub(Const.SPACE_REGEX, '+', txt)
     return BOOKING_URL.format(parsed)
 
 
-def get_wander_url(txt):
+def get_wander_url(txt: str):
     parsed = re.sub(Const.SPACE_REGEX, '+', txt)
     return WANDER_URL.format(parsed)
 
 
-def get_th_url(txt):
+def get_th_url(txt: str):
     parsed = re.sub(Const.SPACE_REGEX, '+', txt)
     return TB_URL.format(parsed)
 
 
-def get_pt_url(txt):
+def get_pt_url(txt: str):
     parsed = urllib.parse.quote_plus(txt)
     return PT_URL.format(parsed)
 
 
-def get_response_message(city, msg, nearby: Optional[str]):
+def get_response_message(city: str, msg: str, nearby: Optional[str]):
     if city is None:
         message = f'''
 {msg}

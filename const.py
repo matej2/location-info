@@ -32,11 +32,13 @@ class Const:
     @staticmethod
     def successfully_processed(city: str):
         """
-        :param city: str
         :return: str
         """
         return f'{city} successfully processed'
 
     @staticmethod
     def body_regex(mention: str):
+        """
+        :return: str
+        """
         return f'{mention}\s*({Const.CITY_REGEX})'

@@ -5,13 +5,19 @@ import mwparserfromhell
 import requests
 import wikipedia
 from mwparserfromhell.nodes.extras import Parameter
+from wikipedia import WikipediaPage
 
 from models import LocationMeta
 
 
 class WikiClient:
     @staticmethod
-    def get_location_meta(city):
+    def get_location_meta(city: str):
+        """
+        Get location metadata
+        :return:
+        LocationMeta: Meta data
+        """
         search = wikipedia.search(city)
         st = 0
 
@@ -37,20 +43,32 @@ class WikiClient:
         return None
 
     @staticmethod
-    def is_location(page):
+    def is_location(page: WikipediaPage):
+        """
+        :return:
+        bool: True if page is a location
+        """
         for attr in page.categories:
             if attr == 'Coordinates on Wikidata':
                 return True
         return False
 
     @staticmethod
-    def get_nearby_locations(lon, lat):
+    def get_nearby_locations(lon: str, lat: str):
+        """
+        :return:
+        str: A list of nearby locations
+        """
         loc_list = wikipedia.geosearch(lon, lat, results=10)
         return ', '.join(loc_list)
 
     # See https://stackoverflow.com/a/33336820/10538678
     @staticmethod
-    def get_taxonomy(title):
+    def get_taxonomy(title: str):
+        """
+        :return:
+        list[Parameter]: A list of parameters
+        """
         infobox = None
         parsed_params = []
         a = ''
