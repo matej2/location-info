@@ -1,0 +1,6 @@
+# documentation https://pycrunch.com/docs/configuration-file
+engine:
+    runtime: pytest
+    enable-web-ui: false
+    load-pytest-plugins: true
+    deep-inheritance: false
