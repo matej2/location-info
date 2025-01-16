@@ -81,3 +81,8 @@ class RedditUtils:
             return result.group(1)
         else:
             return None
+
+    @staticmethod
+    def extract_location_from_comment(comment: Comment):
+        inbox_item_text = comment.body
+        return re.search(Const.body_regex(Const.mention), inbox_item_text, flags=re.IGNORECASE)
