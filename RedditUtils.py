@@ -19,16 +19,16 @@ class RedditUtils:
 
     def __init__(self):
         self.reddit = praw.Reddit(client_id=self.client_id,
-                             client_secret=self.client_secret,
-                             user_agent='windows:github.com/matej2/location-info:v0.6 (by /u/mtj510)',
-                             username=self.username,
-                             password=self.password)
+                                  client_secret=self.client_secret,
+                                  user_agent='windows:github.com/matej2/location-info:v0.6 (by /u/mtj510)',
+                                  username=self.username,
+                                  password=self.password)
         if not self.reddit.read_only:
             print("Connected and running.")
 
-    def get_meta_post(self):
+    def get_or_create_meta_post(self):
         """
-        Get meta post
+        Get or create meta post
         :return:
         praw.models.Submission: A meta post
         """
@@ -46,6 +46,10 @@ class RedditUtils:
 
     @staticmethod
     def reply_to_comment(city: str, target_comment: Comment):
+        """
+        :return:
+        str: Comment id
+        """
 
         if city is None:
             new_comment = get_response_message(None, Const.NO_BODY, None)
@@ -66,8 +70,13 @@ class RedditUtils:
             print(e)
         return result_comment.id
 
-    def get_location_from_comment(c):
-        result = re.search('Information for location:\s*(.*):$', c.body, flags=re.IGNORECASE | re.MULTILINE)
+    @staticmethod
+    def get_location_from_comment(comment: Comment):
+        """
+        :return:
+        str: Location name | None
+        """
+        result = re.search('Information for location:\s*(.*):$', comment.body, flags=re.IGNORECASE | re.MULTILINE)
         if result is not None:
             return result.group(1)
         else:
