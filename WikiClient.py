@@ -1,10 +1,4 @@
-import json
-import re
-
-import mwparserfromhell
-import requests
 import wikipedia
-from mwparserfromhell.nodes.extras import Parameter
 from wikipedia import WikipediaPage
 
 from models import LocationMeta
